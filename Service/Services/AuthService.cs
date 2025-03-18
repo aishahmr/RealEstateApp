@@ -1,6 +1,8 @@
 ﻿using RealEstateAPI.DTOs.UserDTos.Register;
 using RealEstateAPI.DTOs.UserDTos.Login;
 using RealEstateAPI.DTOs.UserDTos.Administration;
+using RealEstateAPI.DTOs.UserDTos.ResetPassword;
+
 using RealEstateAPI.Models;
 using RealEstateAPI.Service.IServices;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +14,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace RealEstateAPI.Service.Services
 {
@@ -19,7 +23,7 @@ namespace RealEstateAPI.Service.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
-        private static readonly Dictionary<string, string> otpStorage = new Dictionary<string, string>(); // 📌 Store OTPs temporarily
+        private static readonly Dictionary<string, string> otpStorage = new Dictionary<string, string>();
 
         public AuthService(UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
@@ -44,6 +48,7 @@ namespace RealEstateAPI.Service.Services
             {
                 Email = model.Email,
                 UserName = model.Email,
+                PhoneNumber = model.PhoneNumber,
                 IsActive = true
             };
 
@@ -107,43 +112,51 @@ namespace RealEstateAPI.Service.Services
         #endregion
 
         #region Forgot Password & OTP
-        public async Task<bool> SendPasswordResetOTP(string email)
+        public async Task<bool> SendPasswordResetOTP(ResetPasswordRequestDTO model)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.PhoneNumber);
             if (user == null) return false;
 
-            string otp = "123456";
-            otpStorage[email] = otp;
+            string otp = "1234"; 
+            otpStorage[model.PhoneNumber] = otp;
 
-            Console.WriteLine($"OTP for {email}: {otp}");
+            Console.WriteLine($"OTP for {model.PhoneNumber}: {otp}");
 
             return true;
         }
 
-        public async Task<bool> ValidateOTP(string email, string otp)
+        public async Task<bool> ValidateOTP(VerifyOTPDTO model)
         {
-            return otpStorage.ContainsKey(email) && otpStorage[email] == otp;
+            return otpStorage.ContainsValue(model.OTP); 
         }
 
-        public async Task<bool> ResetPassword(string email, string otp, string newPassword)
+        public async Task<bool> ResetPassword(ForgotPasswordDTO passwordModel)
         {
-            if (!otpStorage.ContainsKey(email) || otpStorage[email] != otp)
-                return false;
-
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.Users.FirstOrDefaultAsync();
             if (user == null) return false;
 
-            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+            if (passwordModel.NewPassword != passwordModel.ConfirmPassword)
+                return false;
 
-            if (result.Succeeded)
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, passwordModel.NewPassword);
+
+            if (!result.Succeeded)
             {
-                otpStorage.Remove(email);
-                return true;
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"Reset Error: {error.Description}");  // Print error messages
+                }
+                return false;
             }
 
-            return false;
+            return true;
         }
+
+
+
+
+
         #endregion
 
         #region List Users & User Activation

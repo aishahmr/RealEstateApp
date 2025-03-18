@@ -1,8 +1,11 @@
-﻿namespace RealEstateAPI.DTOs.UserDTos.ResetPassword
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RealEstateAPI.DTOs.UserDTos.ResetPassword
 {
     public class VerifyOTPDTO
     {
-        public string Email { get; set; }
+        [StringLength(4, MinimumLength = 4)]
         public string OTP { get; set; }
     }
 }
+

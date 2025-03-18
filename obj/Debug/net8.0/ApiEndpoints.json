@@ -9,7 +9,7 @@
     "Parameters": [
       {
         "Name": "model",
-        "Type": "RealEstateAPI.DTOs.UserDTos.ResetPassword.ForgotPasswordDTO",
+        "Type": "RealEstateAPI.DTOs.UserDTos.ResetPassword.ResetPasswordRequestDTO",
         "IsRequired": true
       }
     ],
@@ -48,6 +48,16 @@
         "Name": "Password",
         "Type": "System.String",
         "IsRequired": false
+      },
+      {
+        "Name": "ConfirmPassword",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "PhoneNumber",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -61,8 +71,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "model",
-        "Type": "RealEstateAPI.DTOs.UserDTos.ResetPassword.ResetPasswordDTO",
+        "Name": "passwordModel",
+        "Type": "RealEstateAPI.DTOs.UserDTos.ResetPassword.ForgotPasswordDTO",
         "IsRequired": true
       }
     ],

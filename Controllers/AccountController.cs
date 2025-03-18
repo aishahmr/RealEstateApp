@@ -1,9 +1,11 @@
 ﻿using RealEstateAPI.DTOs.UserDTos.Login;
 using RealEstateAPI.DTOs.UserDTos.Register;
-using RealEstateAPI.DTOs.UserDTos.ResetPassword; //  Import DTO for password reset
+using RealEstateAPI.DTOs.UserDTos.ResetPassword; 
+
 using RealEstateAPI.Service.IServices;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace RealEstateAPI.Controllers
 {
@@ -41,32 +43,42 @@ namespace RealEstateAPI.Controllers
             return Ok(result);
         }
 
-        // 📌 NEW: Forgot Password (Sends OTP)
+       
         [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
+        public async Task<IActionResult> ForgotPassword([FromBody] ResetPasswordRequestDTO model) 
         {
-            var result = await _authService.SendPasswordResetOTP(model.Email);
-            if (!result) return BadRequest("Failed to send OTP. Email may not be registered.");
+            var result = await _authService.SendPasswordResetOTP(model);
+            if (!result) return BadRequest("Failed to send OTP. Phone number may not be registered.");
             return Ok("OTP sent successfully.");
         }
 
-        // 📌 NEW: Verify OTP
+
         [HttpPost("VerifyOTP")]
         public async Task<IActionResult> VerifyOTP([FromBody] VerifyOTPDTO model)
         {
-            var isValid = await _authService.ValidateOTP(model.Email, model.OTP);
+            var isValid = await _authService.ValidateOTP(model); 
+
             if (!isValid) return BadRequest("Invalid OTP.");
             return Ok("OTP verified. You can now reset your password.");
         }
 
-        // 📌 NEW: Reset Password
+
+
+
+
+
         [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO model)
+        public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordDTO passwordModel)
         {
-            var result = await _authService.ResetPassword(model.Email, model.OTP, model.NewPassword);
-            if (!result) return BadRequest("Failed to reset password. Please check your OTP and try again.");
+            var result = await _authService.ResetPassword(passwordModel);
+            if (!result) return BadRequest("Failed to reset password. Please try again.");
+
             return Ok("Password reset successfully.");
         }
+
+
+
+
         #endregion
     }
 }
