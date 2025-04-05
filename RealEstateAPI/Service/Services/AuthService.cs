@@ -112,28 +112,33 @@ namespace RealEstateAPI.Service.Services
         #endregion
 
         #region Forgot Password & OTP
-        public async Task<bool> SendPasswordResetOTP(ResetPasswordRequestDTO model)
+        public async Task<bool> SendPasswordResetOTP(EmailOnlyDTO model)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.PhoneNumber);
+            var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null) return false;
 
             string otp = "1234"; 
-            otpStorage[model.PhoneNumber] = otp;
+            otpStorage[user.Email] = otp;
 
-            Console.WriteLine($"OTP for {model.PhoneNumber}: {otp}");
+            Console.WriteLine($"OTP for {user.Email}: {otp}");
 
             return true;
         }
 
         public async Task<bool> ValidateOTP(VerifyOTPDTO model)
         {
-            return otpStorage.ContainsValue(model.OTP); 
+            return otpStorage.ContainsValue(model.OTP);
         }
 
-        public async Task<bool> ResetPassword(ForgotPasswordDTO passwordModel)
+        public async Task<bool> ResetPassword(ResetPasswordRequestDTO passwordModel)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync();
+            var user = await _userManager.FindByEmailAsync(passwordModel.Email);
             if (user == null) return false;
+
+            if (!otpStorage.TryGetValue(user.Email, out var storedOtp) || storedOtp != passwordModel.OTP)
+            {
+                return false; // Invalid or expired OTP
+            }
 
             if (passwordModel.NewPassword != passwordModel.ConfirmPassword)
                 return false;
@@ -145,18 +150,15 @@ namespace RealEstateAPI.Service.Services
             {
                 foreach (var error in result.Errors)
                 {
-                    Console.WriteLine($"Reset Error: {error.Description}");  // Print error messages
+                    Console.WriteLine($"Reset Error: {error.Description}");
                 }
                 return false;
             }
 
+            otpStorage.Remove(user.Email); // Remove used OTP
+
             return true;
         }
-
-
-
-
-
         #endregion
 
         #region List Users & User Activation

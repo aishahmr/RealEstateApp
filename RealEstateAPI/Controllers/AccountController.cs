@@ -1,11 +1,9 @@
-﻿using RealEstateAPI.DTOs.UserDTos.Login;
+﻿using Microsoft.AspNetCore.Mvc;
+using RealEstateAPI.DTOs.UserDTos.Login;
 using RealEstateAPI.DTOs.UserDTos.Register;
-using RealEstateAPI.DTOs.UserDTos.ResetPassword; 
-
+using RealEstateAPI.DTOs.UserDTos.ResetPassword;
 using RealEstateAPI.Service.IServices;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace RealEstateAPI.Controllers
 {
@@ -13,72 +11,56 @@ namespace RealEstateAPI.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        #region Fields
         private readonly IAuthService _authService;
-        #endregion
 
-        #region Ctor
         public AccountController(IAuthService authService)
         {
             _authService = authService;
         }
-        #endregion
 
-        #region Handle Functions
-        [HttpPost("[action]")]
-        public async Task<IActionResult> Register([FromForm] RegisterDTO DTO)
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromForm] RegisterDTO dto)
         {
-            var result = await _authService.RegisterAsync(DTO);
+            var result = await _authService.RegisterAsync(dto);
             if (result.Message == "Existing") return BadRequest(new { code = result.Message, message = result.Error });
             if (result.Message == "Password") return BadRequest(new { code = result.Message, message = result.Error });
             if (result.Message == "Image") return BadRequest(new { code = result.Message, message = result.Error });
             return Ok();
         }
 
-        [HttpPost("[action]")]
-        public async Task<IActionResult> Login(LoginDTO DTO)
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login(LoginDTO dto)
         {
-            var result = await _authService.Login(DTO);
+            var result = await _authService.Login(dto);
             if (!result.IsAuthenticated) return BadRequest(result.Message);
             return Ok(result);
         }
 
-       
         [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ResetPasswordRequestDTO model) 
+        public async Task<IActionResult> ForgotPassword([FromBody] EmailOnlyDTO dto)
         {
-            var result = await _authService.SendPasswordResetOTP(model);
-            if (!result) return BadRequest("Failed to send OTP. Phone number may not be registered.");
+            var result = await _authService.SendPasswordResetOTP(dto);
+            if (!result)
+                return BadRequest("Failed to send OTP. Email may not be registered.");
             return Ok("OTP sent successfully.");
         }
 
-
         [HttpPost("VerifyOTP")]
-        public async Task<IActionResult> VerifyOTP([FromBody] VerifyOTPDTO model)
+        public async Task<IActionResult> VerifyOTP([FromBody] VerifyOTPDTO dto)
         {
-            var isValid = await _authService.ValidateOTP(model); 
-
-            if (!isValid) return BadRequest("Invalid OTP.");
+            var isValid = await _authService.ValidateOTP(dto);
+            if (!isValid)
+                return BadRequest("Invalid OTP.");
             return Ok("OTP verified. You can now reset your password.");
         }
 
-
-
-
-
-
         [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordDTO passwordModel)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDTO dto)
         {
-            var result = await _authService.ResetPassword(passwordModel);
-            if (!result) return BadRequest("Failed to reset password. Please try again.");
-
+            var result = await _authService.ResetPassword(dto);
+            if (!result)
+                return BadRequest("Failed to reset password. Please try again.");
             return Ok("Password reset successfully.");
         }
-
-
-
-
-        #endregion
     }
 }

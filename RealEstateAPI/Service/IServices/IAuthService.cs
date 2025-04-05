@@ -12,9 +12,9 @@ namespace RealEstateAPI.Service.IServices
     {
         Task<RegisterResultDTO> RegisterAsync(RegisterDTO model);
         Task<LoginResponseDTO> Login(LoginDTO model);
-        Task<bool> SendPasswordResetOTP(ResetPasswordRequestDTO model);
+        Task<bool> SendPasswordResetOTP(EmailOnlyDTO model);
         Task<bool> ValidateOTP(VerifyOTPDTO model);
-        Task<bool> ResetPassword(ForgotPasswordDTO passwordModel);
+        Task<bool> ResetPassword(ResetPasswordRequestDTO passwordModel);
         Task<List<ListUsers>> ListOfUsers();
         Task<string> UserActivation(UserActivation activation);
         Task<ApplicationUser?> GetUserById(string userId);
