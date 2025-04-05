@@ -112,18 +112,19 @@ namespace RealEstateAPI.Service.Services
         #endregion
 
         #region Forgot Password & OTP
-        public async Task<bool> SendPasswordResetOTP(EmailOnlyDTO model)
+        public async Task<bool> SendPasswordResetOTP(PhoneOnlyDTO model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.PhoneNumber);
             if (user == null) return false;
 
             string otp = "1234"; 
-            otpStorage[user.Email] = otp;
+            otpStorage[user.PhoneNumber] = otp;
 
-            Console.WriteLine($"OTP for {user.Email}: {otp}");
+            Console.WriteLine($"OTP for {user.PhoneNumber}: {otp}");
 
             return true;
         }
+
 
         public async Task<bool> ValidateOTP(VerifyOTPDTO model)
         {
@@ -132,10 +133,10 @@ namespace RealEstateAPI.Service.Services
 
         public async Task<bool> ResetPassword(ResetPasswordRequestDTO passwordModel)
         {
-            var user = await _userManager.FindByEmailAsync(passwordModel.Email);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == passwordModel.PhoneNumber);
             if (user == null) return false;
 
-            if (!otpStorage.TryGetValue(user.Email, out var storedOtp) || storedOtp != passwordModel.OTP)
+            if (!otpStorage.TryGetValue(user.PhoneNumber, out var storedOtp) || storedOtp != passwordModel.OTP)
             {
                 return false; // Invalid or expired OTP
             }
@@ -155,10 +156,10 @@ namespace RealEstateAPI.Service.Services
                 return false;
             }
 
-            otpStorage.Remove(user.Email); // Remove used OTP
-
+            otpStorage.Remove(user.PhoneNumber); // Clear used OTP
             return true;
         }
+
         #endregion
 
         #region List Users & User Activation

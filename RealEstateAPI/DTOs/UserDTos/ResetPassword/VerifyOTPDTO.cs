@@ -6,8 +6,8 @@ namespace RealEstateAPI.DTOs.UserDTos.ResetPassword
     public class VerifyOTPDTO
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        [Phone]
+        public string PhoneNumber { get; set; }
 
         [Required]
         [StringLength(4, MinimumLength = 4, ErrorMessage = "OTP must be exactly 4 digits.")]

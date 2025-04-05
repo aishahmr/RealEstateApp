@@ -37,11 +37,11 @@ namespace RealEstateAPI.Controllers
         }
 
         [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] EmailOnlyDTO dto)
+        public async Task<IActionResult> ForgotPassword([FromBody] PhoneOnlyDTO dto)
         {
             var result = await _authService.SendPasswordResetOTP(dto);
             if (!result)
-                return BadRequest("Failed to send OTP. Email may not be registered.");
+                return BadRequest("Failed to send OTP. please enter the correct phone mumber");
             return Ok("OTP sent successfully.");
         }
 

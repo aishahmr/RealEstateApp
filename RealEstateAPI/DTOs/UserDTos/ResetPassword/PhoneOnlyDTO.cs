@@ -2,11 +2,11 @@
 
 namespace RealEstateAPI.DTOs.UserDTos.ResetPassword
 {
-    public class EmailOnlyDTO
-
+    public class PhoneOnlyDTO
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        [Phone]
+        public string PhoneNumber { get; set; }
     }
 }
+

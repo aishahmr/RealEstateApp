@@ -5,8 +5,8 @@ namespace RealEstateAPI.DTOs.UserDTos.ResetPassword
     public class ResetPasswordRequestDTO
     {
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        [Phone]
+        public string PhoneNumber { get; set; }
 
         [Required]
         public string NewPassword { get; set; }

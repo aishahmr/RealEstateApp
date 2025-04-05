@@ -12,7 +12,7 @@ namespace RealEstateAPI.Service.IServices
     {
         Task<RegisterResultDTO> RegisterAsync(RegisterDTO model);
         Task<LoginResponseDTO> Login(LoginDTO model);
-        Task<bool> SendPasswordResetOTP(EmailOnlyDTO model);
+        Task<bool> SendPasswordResetOTP(PhoneOnlyDTO model);
         Task<bool> ValidateOTP(VerifyOTPDTO model);
         Task<bool> ResetPassword(ResetPasswordRequestDTO passwordModel);
         Task<List<ListUsers>> ListOfUsers();
