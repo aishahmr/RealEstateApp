@@ -22,6 +22,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RealEstateAPI", Version = "v1" });
+    c.MapType<IFormFile>(() => new OpenApiSchema { Type = "string", Format = "binary" });
 });
 
 builder.Services.AddSwaggerGen(swagger =>
@@ -116,6 +117,9 @@ builder.Services.AddServicesDependencies();
 
 // 📌 Register AuthService for Dependency Injection
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// 📌 Register UserService for Dependency Injection
+builder.Services.AddScoped<IUserService, UserService>();
 #endregion
 
 var app = builder.Build();
@@ -144,4 +148,3 @@ using (var scope = app.Services.CreateScope())
 #endregion
 
 app.Run();
-

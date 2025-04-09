@@ -46,6 +46,7 @@ namespace RealEstateAPI.Service.Services
 
             var user = new ApplicationUser
             {
+                Id = Guid.NewGuid().ToString().ToLowerInvariant(), // ← Critical fix
                 Email = model.Email,
                 UserName = model.Email,
                 PhoneNumber = model.PhoneNumber,
@@ -54,14 +55,16 @@ namespace RealEstateAPI.Service.Services
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-            {
-                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return new RegisterResultDTO { Message = "Password", Error = errors };
-            }
+                return new RegisterResultDTO
+                {
+                    Message = "Password",
+                    Error = string.Join(", ", result.Errors.Select(e => e.Description))
+                };
 
             return new RegisterResultDTO { Message = "Success" };
         }
         #endregion
+
 
         #region Login
         public async Task<LoginResponseDTO> Login(LoginDTO model)
@@ -210,35 +213,27 @@ namespace RealEstateAPI.Service.Services
         #region Generate JWT Token
         private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
         {
-            var userClaims = await _userManager.GetClaimsAsync(user);
             var roles = await _userManager.GetRolesAsync(user);
-            var roleClaims = roles.Select(role => new Claim("roles", role)).ToList();
-
             var claims = new List<Claim>
             {
                 new(JwtRegisteredClaimNames.Sub, user.Email ?? ""),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("userId", user.Id)
+                // FIX 2: Guaranteed lowercase claims
+                new("userId", user.Id.ToLowerInvariant()),
+                new(ClaimTypes.NameIdentifier, user.Id.ToLowerInvariant())
             };
 
-            claims.AddRange(userClaims);
-            claims.AddRange(roleClaims);
+            claims.AddRange(roles.Select(role => new Claim("roles", role)));
 
-            var secretKey = _configuration["JWT:SecretKey"];
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new Exception("JWT SecretKey is missing in appsettings.json");
-            }
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
 
             return new JwtSecurityToken(
                 claims: claims,
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 expires: DateTime.UtcNow.AddDays(7),
-                signingCredentials: signingCredentials
+                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
             );
         }
         #endregion

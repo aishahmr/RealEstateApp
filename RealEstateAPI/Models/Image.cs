@@ -7,7 +7,6 @@ namespace RealEstateAPI.Models
         public Guid PropertyId { get; set; }  // Foreign Key (Property)
         public string ImageUrl { get; set; }
 
-        // Navigation Property
         public Property Property { get; set; }
     }
 }
